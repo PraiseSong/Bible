@@ -4,5 +4,11 @@
     <string name="app_name">圣经</string>
     <string name="hello_world">Hello world!</string>
     <string name="menu_settings">Settings</string>
+    
+    <string name="shujuan">圣经书卷：</string>
+    <string name="kuaishusuoyin">快速索引：</string>
+    <string name="zhangshu">章数：</string>
+    <string name="query">查询</string>
+    <string name="jieshu">节数：</string>
 
 </resources>
