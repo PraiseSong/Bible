@@ -10,5 +10,8 @@
     <string name="zhangshu">章数：</string>
     <string name="query">查询</string>
     <string name="jieshu">节数：</string>
+    <string name="cong">从</string>
+    <string name="dao">到</string>
+    <string name="查询">query</string>
 
 </resources>
