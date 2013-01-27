@@ -23,6 +23,9 @@ import android.os.StrictMode;
 import android.app.Activity;
 import android.util.Log;
 import android.view.Menu;
+import android.view.View;
+import android.widget.AdapterView;
+import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
@@ -54,10 +57,10 @@ public class Bible extends Activity {
 		.penaltyDeath()
 		.build());
 		
-		getBookTitle();
+		processBookTitle();
 	}
 	
-	private void getBookTitle(){
+	private void processBookTitle(){
 		String bookTitleQuery = "action=query_bookTitle";
 		try{
 			bookTitle = Json.getJSONArray(HOST+bookTitleQuery);
@@ -77,6 +80,20 @@ public class Bible extends Activity {
 					R.id.name
 			});
 			tomeList.setAdapter(_Adapter);
+			
+			OnItemSelectedListener oisl = new OnItemSelectedListener(){
+				@Override
+				public void onItemSelected(AdapterView<?> parent, View view,
+						int position, long id) {
+					Log.d(TAG,parent.getItemAtPosition(position).toString());
+					Log.d(TAG,""+id);
+					Log.d(TAG,""+position);
+				}
+
+				@Override
+				public void onNothingSelected(AdapterView<?> arg0) {
+				}};
+			tomeList.setOnItemSelectedListener(oisl);
 		}catch(JSONException e){
 			e.printStackTrace();
 		}catch(Exception e){
