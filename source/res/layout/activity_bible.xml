@@ -13,10 +13,10 @@
             android:id="@+id/textView1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/shujuan" />
+            android:text="@string/tome" />
 
         <Spinner
-            android:id="@+id/shujuan"
+            android:id="@+id/tome"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1" />
@@ -31,22 +31,22 @@
             android:id="@+id/textView2"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/kuaishusuoyin" />
+            android:text="@string/index" />
 
         <EditText
-            android:id="@+id/editText1"
+            android:id="@+id/index"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:ems="10" android:inputType="textUri">
+            android:ems="10"
+            android:inputType="textUri" >
 
 	    </EditText>
 
         <ImageButton
-            android:id="@+id/imageButton1"
+            android:id="@+id/btnQuery"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:contentDescription="@string/query"
             android:src="@android:drawable/ic_menu_search" />
 
     </TableRow>
@@ -60,10 +60,10 @@
             android:id="@+id/textView3"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/zhangshu" />
+            android:text="@string/chapterNum" />
 
         <Spinner
-            android:id="@+id/spinner1"
+            android:id="@+id/chapterNum"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
 
@@ -78,16 +78,16 @@
             android:id="@+id/textView4"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/jieshu" />
+            android:text="@string/section" />
 
         <TextView
             android:id="@+id/textView5"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/cong" />
+            android:text="@string/from" />
 
         <Spinner
-            android:id="@+id/spinner2"
+            android:id="@+id/sectionFrom"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_weight="1" />
@@ -96,13 +96,13 @@
             android:id="@+id/textView6"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/dao" />
+            android:text="@string/to" />
 
         <Spinner
-            android:id="@+id/spinner3"
-            android:layout_weight="1"
+            android:id="@+id/sectionTo"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:layout_weight="1" />
 
     </TableRow>
 

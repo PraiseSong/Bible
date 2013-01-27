@@ -3,6 +3,9 @@ package hk.cross.bible;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -20,15 +23,25 @@ import android.os.StrictMode;
 import android.app.Activity;
 import android.util.Log;
 import android.view.Menu;
+import android.widget.ListView;
+import android.widget.SimpleAdapter;
+import android.widget.Spinner;
 
 public class Bible extends Activity {
 	private final String HOST = "http://cross.hk/wp-admin/admin-ajax.php?";
+	
+	private static final String TAG = "Bible";
+	
+	private JSONArray bookTitle;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_bible);
 		
+		/**
+		 * 解决android NetworkOnMainThreadException报错
+		 */
 		StrictMode.setThreadPolicy(new StrictMode.ThreadPolicy.Builder()
         .detectDiskReads()
         .detectDiskWrites()
@@ -47,11 +60,36 @@ public class Bible extends Activity {
 	private void getBookTitle(){
 		String bookTitleQuery = "action=query_bookTitle";
 		try{
-			JSONArray bookTitle = Json.getJSONArray(HOST+bookTitleQuery);
+			bookTitle = Json.getJSONArray(HOST+bookTitleQuery);
+			List<JSONObject> tome = jsonArray2ListJSONObject(bookTitle);
+			List<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
+			Spinner tomeList = (Spinner) findViewById(R.id.tome);
+			for(int i=0; i<tome.size(); i++){
+				HashMap<String, Object> map = new HashMap<String, Object>();
+				map.put("name", tome.get(i).getString("BookTitle"));
+				map.put("id", tome.get(i).getString("Book"));
+				data.add(map);
+			}
+			SimpleAdapter _Adapter = new SimpleAdapter(Bible.this, data, R.layout.list_item, new String[] {
+					"id", "name"
+			}, new int[] {
+					R.id.id,
+					R.id.name
+			});
+			tomeList.setAdapter(_Adapter);
 		}catch(JSONException e){
 			e.printStackTrace();
 		}catch(Exception e){
 			e.printStackTrace();
 		}
+	}
+	
+	private List<JSONObject> jsonArray2ListJSONObject(JSONArray jsonData) throws JSONException{
+		List<JSONObject> data = new ArrayList<JSONObject>();
+		for(int i=0; i<jsonData.length(); i++){
+			JSONObject item = jsonData.getJSONObject(i);;
+			data.add(item);
+		}
+		return data;
 	}
 }
