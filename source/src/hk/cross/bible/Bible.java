@@ -36,6 +36,7 @@ public class Bible extends Activity {
 	private static final String TAG = "Bible";
 	
 	private JSONArray bookTitle;
+	private String chapterNum = "";
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -60,6 +61,9 @@ public class Bible extends Activity {
 		processBookTitle();
 	}
 	
+	/**
+	 * 处理圣经书卷
+	 */
 	private void processBookTitle(){
 		String bookTitleQuery = "action=query_bookTitle";
 		try{
@@ -85,9 +89,19 @@ public class Bible extends Activity {
 				@Override
 				public void onItemSelected(AdapterView<?> parent, View view,
 						int position, long id) {
-					Log.d(TAG,parent.getItemAtPosition(position).toString());
-					Log.d(TAG,""+id);
-					Log.d(TAG,""+position);
+					try {
+						JSONObject item = new JSONObject(parent.getItemAtPosition(position).toString());
+						int itemId = item.getInt("id");
+						String itemId2 = null;
+						if(itemId < 10){
+							itemId2 = "0"+String.valueOf(itemId);
+						}else{
+							itemId2 = ""+itemId;
+						}
+						processChapterNum(itemId2);
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
 				}
 
 				@Override
@@ -101,6 +115,12 @@ public class Bible extends Activity {
 		}
 	}
 	
+	/**
+	 * 将一个json array转换为List对象
+	 * @param jsonData
+	 * @return List<JSONObject>
+	 * @throws JSONException
+	 */
 	private List<JSONObject> jsonArray2ListJSONObject(JSONArray jsonData) throws JSONException{
 		List<JSONObject> data = new ArrayList<JSONObject>();
 		for(int i=0; i<jsonData.length(); i++){
@@ -108,5 +128,15 @@ public class Bible extends Activity {
 			data.add(item);
 		}
 		return data;
+	}
+	
+	private void processChapterNum(String tomeId){
+		String chapterQuery = "action=query_article_num&id="+tomeId;
+		try{
+			chapterNum = Json.getRequest(HOST+chapterQuery).trim();
+			
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 }
