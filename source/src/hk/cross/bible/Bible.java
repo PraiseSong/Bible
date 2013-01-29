@@ -20,15 +20,19 @@ import org.json.JSONObject;
 
 import android.os.Bundle;
 import android.os.StrictMode;
+import android.R.integer;
 import android.app.Activity;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
+import android.widget.ArrayAdapter;
 import android.widget.ListView;
+import android.widget.ScrollView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
+import android.widget.TextView;
 
 public class Bible extends Activity {
 	private final String HOST = "http://cross.hk/wp-admin/admin-ajax.php?";
@@ -37,6 +41,11 @@ public class Bible extends Activity {
 	
 	private JSONArray bookTitle;
 	private String chapterNum = "";
+	
+	private int tomeID = 0;//当前圣经书卷的id
+	private int chapterID = 0;//当前的章数
+	private int sectionFromID = 0;//当前开始节数
+	private int sectionToID = 0;//当前结束节数
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -98,7 +107,10 @@ public class Bible extends Activity {
 						}else{
 							itemId2 = ""+itemId;
 						}
-						processChapterNum(itemId2);
+						
+						tomeID = Integer.parseInt(itemId2);
+						
+						processChapterNum();
 					} catch (JSONException e) {
 						e.printStackTrace();
 					}
@@ -130,11 +142,84 @@ public class Bible extends Activity {
 		return data;
 	}
 	
-	private void processChapterNum(String tomeId){
-		String chapterQuery = "action=query_article_num&id="+tomeId;
+	private void processChapterNum(){
+		String chapterQuery = "action=query_article_num&id="+tomeID;
 		try{
-			chapterNum = Json.getRequest(HOST+chapterQuery).trim();
+			int chapterNum = Integer.parseInt(Json.getRequest(HOST+chapterQuery).trim());
+			Integer[] chapterNumList = new Integer[chapterNum];
+			for(int i=0; i<chapterNum; i++){
+				chapterNumList[i] = i+1;
+			}
+			Spinner chapter = (Spinner) findViewById(R.id.chapterNum);
+			ArrayAdapter<Integer> adapter = new ArrayAdapter<Integer>(Bible.this, android.R.layout.simple_list_item_1, chapterNumList);
+			chapter.setAdapter(adapter);
 			
+			OnItemSelectedListener oisl = new OnItemSelectedListener(){
+				@Override
+				public void onItemSelected(AdapterView<?> parent, View view,
+						int position, long id) {
+					chapterID = (int) Integer.parseInt(parent.getItemAtPosition(position).toString());
+					processSectionNum();
+				}
+
+				@Override
+				public void onNothingSelected(AdapterView<?> arg0) {
+				}};
+			chapter.setOnItemSelectedListener(oisl);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	private void processSectionNum(){
+		String sectionQuery = "action=query_verse_num&article="+chapterID+"&id="+tomeID+"";
+		try{
+			int sectionNum = Integer.parseInt(Json.getRequest(HOST+sectionQuery).trim());
+			Integer[] sectionList = new Integer[sectionNum];
+			for(int i=0; i<sectionNum; i++){
+				sectionList[i] = i+1;
+			}
+			Spinner sectionFrom = (Spinner) findViewById(R.id.sectionFrom);
+			Spinner sectionTo = (Spinner) findViewById(R.id.sectionTo);
+			ArrayAdapter<Integer> adapter = new ArrayAdapter<Integer>(Bible.this, android.R.layout.simple_list_item_1, sectionList);
+			sectionFrom.setAdapter(adapter);
+			sectionTo.setAdapter(adapter);
+			
+			OnItemSelectedListener listenerTo = new OnItemSelectedListener(){
+				@Override
+				public void onItemSelected(AdapterView<?> parent, View view,
+						int position, long id) {
+					sectionToID = (int) Integer.parseInt(parent.getItemAtPosition(position).toString());
+					queryBible();
+				}
+
+				@Override
+				public void onNothingSelected(AdapterView<?> arg0) {
+				}};
+			OnItemSelectedListener listenerFrom = new OnItemSelectedListener(){
+					@Override
+					public void onItemSelected(AdapterView<?> parent, View view,
+							int position, long id) {
+						sectionFromID = (int) Integer.parseInt(parent.getItemAtPosition(position).toString());
+					}
+
+					@Override
+					public void onNothingSelected(AdapterView<?> arg0) {
+					}};
+			sectionFrom.setOnItemSelectedListener(listenerFrom);
+			sectionTo.setOnItemSelectedListener(listenerTo);
+		}catch(Exception e){
+			e.printStackTrace();
+		}
+	}
+	
+	private void queryBible(){
+		String queryBible = "action=query_bible&article="+chapterID+"&id="+tomeID+"&verse_start="+sectionFromID+"&verse_stop="+sectionToID+"";
+		try{
+			String bible = (Json.getRequest(HOST+queryBible)).trim();
+			bible = android.text.Html.fromHtml(bible).toString();
+			TextView bibleBox = (TextView) findViewById(R.id.bibleBox);
+			bibleBox.setText(bible);
 		}catch(Exception e){
 			e.printStackTrace();
 		}
