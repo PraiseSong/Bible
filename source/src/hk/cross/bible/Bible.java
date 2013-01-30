@@ -1,51 +1,39 @@
 package hk.cross.bible;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
 import android.os.StrictMode;
-import android.R.integer;
 import android.app.Activity;
 import android.util.Log;
-import android.view.Menu;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.ScrollView;
 import android.widget.SimpleAdapter;
 import android.widget.Spinner;
 import android.widget.TextView;
 
 public class Bible extends Activity {
+	//接口地址
 	private final String HOST = "http://cross.hk/wp-admin/admin-ajax.php?";
 	
 	private static final String TAG = "Bible";
 	
 	private JSONArray bookTitle;
-	private String chapterNum = "";
 	
 	private int tomeID = 0;//当前圣经书卷的id
 	private int chapterID = 0;//当前的章数
 	private int sectionFromID = 0;//当前开始节数
 	private int sectionToID = 0;//当前结束节数
+	
+	private boolean initQuery = false;//初始化查询是否完成 
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +51,7 @@ public class Bible extends Activity {
         .build());
 		StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
 		.detectLeakedSqlLiteObjects() //探测SQLite数据库操作
-		.penaltyLog() //打印logcat
+		.penaltyLog() 
 		.penaltyDeath()
 		.build());
 		
@@ -75,6 +63,7 @@ public class Bible extends Activity {
 	 */
 	private void processBookTitle(){
 		String bookTitleQuery = "action=query_bookTitle";
+		
 		try{
 			bookTitle = Json.getJSONArray(HOST+bookTitleQuery);
 			List<JSONObject> tome = jsonArray2ListJSONObject(bookTitle);
@@ -94,7 +83,7 @@ public class Bible extends Activity {
 			});
 			tomeList.setAdapter(_Adapter);
 			
-			OnItemSelectedListener oisl = new OnItemSelectedListener(){
+			OnItemSelectedListener listener = new OnItemSelectedListener(){
 				@Override
 				public void onItemSelected(AdapterView<?> parent, View view,
 						int position, long id) {
@@ -119,7 +108,7 @@ public class Bible extends Activity {
 				@Override
 				public void onNothingSelected(AdapterView<?> arg0) {
 				}};
-			tomeList.setOnItemSelectedListener(oisl);
+			tomeList.setOnItemSelectedListener(listener);
 		}catch(JSONException e){
 			e.printStackTrace();
 		}catch(Exception e){
@@ -144,6 +133,7 @@ public class Bible extends Activity {
 	
 	private void processChapterNum(){
 		String chapterQuery = "action=query_article_num&id="+tomeID;
+		
 		try{
 			int chapterNum = Integer.parseInt(Json.getRequest(HOST+chapterQuery).trim());
 			Integer[] chapterNumList = new Integer[chapterNum];
@@ -154,7 +144,7 @@ public class Bible extends Activity {
 			ArrayAdapter<Integer> adapter = new ArrayAdapter<Integer>(Bible.this, android.R.layout.simple_list_item_1, chapterNumList);
 			chapter.setAdapter(adapter);
 			
-			OnItemSelectedListener oisl = new OnItemSelectedListener(){
+			OnItemSelectedListener listener = new OnItemSelectedListener(){
 				@Override
 				public void onItemSelected(AdapterView<?> parent, View view,
 						int position, long id) {
@@ -165,7 +155,7 @@ public class Bible extends Activity {
 				@Override
 				public void onNothingSelected(AdapterView<?> arg0) {
 				}};
-			chapter.setOnItemSelectedListener(oisl);
+			chapter.setOnItemSelectedListener(listener);
 		}catch(Exception e){
 			e.printStackTrace();
 		}
@@ -173,6 +163,7 @@ public class Bible extends Activity {
 	
 	private void processSectionNum(){
 		String sectionQuery = "action=query_verse_num&article="+chapterID+"&id="+tomeID+"";
+		
 		try{
 			int sectionNum = Integer.parseInt(Json.getRequest(HOST+sectionQuery).trim());
 			Integer[] sectionList = new Integer[sectionNum];
@@ -201,6 +192,9 @@ public class Bible extends Activity {
 					public void onItemSelected(AdapterView<?> parent, View view,
 							int position, long id) {
 						sectionFromID = (int) Integer.parseInt(parent.getItemAtPosition(position).toString());
+						if(initQuery){
+							queryBible();
+						}
 					}
 
 					@Override
@@ -214,12 +208,18 @@ public class Bible extends Activity {
 	}
 	
 	private void queryBible(){
+		if(sectionFromID > sectionToID){
+			return;
+		}
+		
 		String queryBible = "action=query_bible&article="+chapterID+"&id="+tomeID+"&verse_start="+sectionFromID+"&verse_stop="+sectionToID+"";
 		try{
 			String bible = (Json.getRequest(HOST+queryBible)).trim();
 			bible = android.text.Html.fromHtml(bible).toString();
 			TextView bibleBox = (TextView) findViewById(R.id.bibleBox);
 			bibleBox.setText(bible);
+			
+			initQuery = true;
 		}catch(Exception e){
 			e.printStackTrace();
 		}
