@@ -27,7 +27,7 @@ public class Bible extends Activity {
 	//接口地址
 	private final String HOST = "http://cross.hk/wp-admin/admin-ajax.php?";
 	
-	private static final String TAG = "Bible";
+	private static final String TAG = "圣经";
 	
 	private JSONArray bookTitle;
 	
