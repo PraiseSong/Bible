@@ -11,6 +11,7 @@ import org.json.JSONObject;
 import android.os.Bundle;
 import android.os.StrictMode;
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -21,6 +22,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 public class Bible extends Activity {
+	private ProgressDialog progressLoading;
+	
 	//接口地址
 	private final String HOST = "http://cross.hk/wp-admin/admin-ajax.php?";
 	
@@ -39,6 +42,8 @@ public class Bible extends Activity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_bible);
+		
+		initLoading();
 		
 		/**
 		 * 解决android NetworkOnMainThreadException报错
@@ -220,8 +225,14 @@ public class Bible extends Activity {
 			bibleBox.setText(bible);
 			
 			initQuery = true;
+			
+			progressLoading.dismiss();
 		}catch(Exception e){
 			e.printStackTrace();
 		}
+	}
+	
+	private void initLoading(){
+		progressLoading = ProgressDialog.show(Bible.this, TAG, "查询中...");
 	}
 }
