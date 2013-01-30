@@ -9,3 +9,8 @@ Bible
 
 web版圣经查询：[cross.hk/圣经查询](http://cross.hk/%E5%9C%A8%E7%BA%BF%E5%9C%A3%E7%BB%8F)
 
+Change Logs
+=====
+* 2012-01-30第一版发布
+![cross.hk Android版圣经](http://labs.cross.hk/wp-content/uploads/2013/01/cross.hk-Bible-for-android-v-1.0.png)
+
