@@ -3,17 +3,21 @@ package hk.cross.bible;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Timer;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.os.StrictMode;
 import android.app.Activity;
 import android.app.ProgressDialog;
 import android.util.Log;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
@@ -22,12 +26,12 @@ import android.widget.Spinner;
 import android.widget.TextView;
 
 public class Bible extends Activity {
-	private ProgressDialog progressLoading;
-	
 	//接口地址
 	private final String HOST = "http://cross.hk/wp-admin/admin-ajax.php?";
 	
 	private static final String TAG = "圣经";
+	
+	private ProgressDialog progressLoading;
 	
 	private JSONArray bookTitle;
 	
@@ -38,12 +42,20 @@ public class Bible extends Activity {
 	
 	private boolean initQuery = false;//初始化查询是否完成 
 	
+	private Handler querySQLHandler = new Handler(){
+		public void handleMessage(Message msg){
+			super.handleMessage(msg);
+			progressLoading.dismiss();
+		}
+	};
+	private Thread querySQLThread;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_bible);
 		
-		initLoading();
+		loading();
 		
 		/**
 		 * 解决android NetworkOnMainThreadException报错
@@ -60,7 +72,12 @@ public class Bible extends Activity {
 		.penaltyDeath()
 		.build());
 		
-		processBookTitle();
+		this.runOnUiThread(new Runnable(){
+			@Override
+			public void run() {
+				processBookTitle();
+			}
+		});
 	}
 	
 	/**
@@ -226,13 +243,20 @@ public class Bible extends Activity {
 			
 			initQuery = true;
 			
-			progressLoading.dismiss();
+			querySQLHandler.sendEmptyMessage(0);
 		}catch(Exception e){
 			e.printStackTrace();
 		}
 	}
 	
-	private void initLoading(){
-		progressLoading = ProgressDialog.show(Bible.this, TAG, "查询中...");
+	private void loading(){
+		if(progressLoading != null && progressLoading.isShowing()){
+			return;
+		}
+		progressLoading = new ProgressDialog(Bible.this);
+		progressLoading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+		progressLoading.setTitle(TAG);
+		progressLoading.setMessage("查询中...");
+		progressLoading.show();
 	}
 }
