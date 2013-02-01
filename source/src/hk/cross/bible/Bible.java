@@ -31,7 +31,7 @@ public class Bible extends Activity {
 	
 	private static final String TAG = "圣经";
 	
-	private ProgressDialog progressLoading;
+	private ProgressDialog progressinitLoading;
 	
 	private JSONArray bookTitle;
 	
@@ -45,7 +45,14 @@ public class Bible extends Activity {
 	private Handler querySQLHandler = new Handler(){
 		public void handleMessage(Message msg){
 			super.handleMessage(msg);
-			progressLoading.dismiss();
+			switch(msg.what){
+			   default:
+				   Log.d(TAG,"finish");
+				   progressinitLoading.dismiss();
+			       setProgressBarIndeterminateVisibility(false);
+			   break;
+			}
+			
 		}
 	};
 	private Thread querySQLThread;
@@ -53,9 +60,10 @@ public class Bible extends Activity {
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
+		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.activity_bible);
 		
-		loading();
+		initLoading();
 		
 		/**
 		 * 解决android NetworkOnMainThreadException报错
@@ -157,6 +165,8 @@ public class Bible extends Activity {
 		String chapterQuery = "action=query_article_num&id="+tomeID;
 		
 		try{
+			loading();
+			
 			int chapterNum = Integer.parseInt(Json.getRequest(HOST+chapterQuery).trim());
 			Integer[] chapterNumList = new Integer[chapterNum];
 			for(int i=0; i<chapterNum; i++){
@@ -187,6 +197,8 @@ public class Bible extends Activity {
 		String sectionQuery = "action=query_verse_num&article="+chapterID+"&id="+tomeID+"";
 		
 		try{
+			loading();
+			
 			int sectionNum = Integer.parseInt(Json.getRequest(HOST+sectionQuery).trim());
 			Integer[] sectionList = new Integer[sectionNum];
 			for(int i=0; i<sectionNum; i++){
@@ -236,27 +248,36 @@ public class Bible extends Activity {
 		
 		String queryBible = "action=query_bible&article="+chapterID+"&id="+tomeID+"&verse_start="+sectionFromID+"&verse_stop="+sectionToID+"";
 		try{
+			loading();
+			
 			String bible = (Json.getRequest(HOST+queryBible)).trim();
 			bible = android.text.Html.fromHtml(bible).toString();
 			TextView bibleBox = (TextView) findViewById(R.id.bibleBox);
 			bibleBox.setText(bible);
 			
 			initQuery = true;
-			
 			querySQLHandler.sendEmptyMessage(0);
 		}catch(Exception e){
 			e.printStackTrace();
 		}
 	}
 	
-	private void loading(){
-		if(progressLoading != null && progressLoading.isShowing()){
+	private void initLoading(){
+		if(progressinitLoading != null && progressinitLoading.isShowing()){
 			return;
 		}
-		progressLoading = new ProgressDialog(Bible.this);
-		progressLoading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-		progressLoading.setTitle(TAG);
-		progressLoading.setMessage("查询中...");
-		progressLoading.show();
+		progressinitLoading = new ProgressDialog(Bible.this);
+		progressinitLoading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
+		progressinitLoading.setTitle(TAG);
+		progressinitLoading.setMessage("查询中...");
+		progressinitLoading.show();
+	}
+	
+	private void loading(){
+		Message msg = new Message();
+		msg.what = 2;
+		querySQLHandler.sendMessage(msg);
+		Log.d(TAG,"loading");
+		setProgressBarIndeterminateVisibility(true);
 	}
 }
