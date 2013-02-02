@@ -96,6 +96,7 @@ public class Bible extends Activity {
 		private Activity activity;
 		private ProgressDialog dialog;
 		private Context context;
+		private String logpreFix = "查询书卷";
 
 		public QueryTome(Activity activity){
 			Log.d(TAG,"开始查询圣经书卷");
@@ -197,10 +198,11 @@ public class Bible extends Activity {
 		private Activity activity;
 		private ProgressDialog dialog;
 		private Context context;
+		private String logpreFix = "查询章数";
 		
 		@Override
 		protected ArrayAdapter doInBackground(Integer... params) {
-			Log.d(TAG,"章数doInBackground");
+			Log.d(TAG,logpreFix+"doInBackground");
 			publishProgress(params[0]);
 			String chapterQuery = "action=query_article_num&id="+tomeID;
 			
@@ -219,7 +221,7 @@ public class Bible extends Activity {
 		}
 		
 		public QueryChapterNum(Activity activity){
-			Log.d(TAG,"开始查询当前章数");
+			Log.d(TAG,"开始查询 "+tome+" 章数");
 			this.activity = activity;
 			this.context = activity;
 			this.dialog = new ProgressDialog(activity);
@@ -227,8 +229,8 @@ public class Bible extends Activity {
 		
 		@Override
 		protected void onPreExecute(){
-			Log.d(TAG,"章数onPreExecute");
-			this.dialog.setTitle("查询所有章数");
+			Log.d(TAG,logpreFix+"onPreExecute");
+			this.dialog.setTitle("查询 "+tome+" 所有章数");
 			if(!this.dialog.isShowing()){
 				this.dialog.show();
 			}
@@ -266,20 +268,26 @@ public class Bible extends Activity {
 		private Activity activity;
 		private ProgressDialog dialog;
 		private Context context;
+		private String logpreFix = "查询节数";
 		
 		public QuerySectionNum(Activity activity){
 			Log.d(TAG,"开始查询第 "+chapterID+" 章的所有节数");
 			this.activity = activity;
 			this.context = activity;
 			this.dialog = new ProgressDialog(activity);
-			this.dialog.setTitle("查询第 "+chapterID+" 章的节数");
+		}
+		
+		@Override
+		protected void onPreExecute(){
+			this.dialog.setTitle("查询 "+tome+" 第 "+chapterID+" 章的节数");
 			if(!this.dialog.isShowing()){
 				this.dialog.show();
 			}
 		}
+		
 		@Override
 		protected ArrayAdapter doInBackground(Integer... params) {
-			Log.d(TAG,"节数doInBackground");
+			Log.d(TAG,logpreFix+"doInBackground");
 			
 			publishProgress(params[0]);
 			String sectionQuery = "action=query_verse_num&article="+chapterID+"&id="+tomeID+"";
@@ -300,7 +308,7 @@ public class Bible extends Activity {
 		
 		@Override
 		protected void onPostExecute(ArrayAdapter adapter){
-			Log.d(TAG,"节数onPostExecute");
+			Log.d(TAG,logpreFix+"onPostExecute");
 			
 			Spinner sectionFrom = (Spinner) findViewById(R.id.sectionFrom);
 			Spinner sectionTo = (Spinner) findViewById(R.id.sectionTo);
@@ -345,13 +353,18 @@ public class Bible extends Activity {
 		private Activity activity;
 		private ProgressDialog dialog;
 		private Context context;
+		private String logpreFix = "查询经文"; 
 		
 		public QueryBibleDetail(Activity activity){
 			this.activity = activity;
 			this.context = activity;
 			this.dialog = new ProgressDialog(activity);
-			this.dialog.setTitle("查询经文");
-			this.dialog.setMessage("正在查询："+tome+chapterID+":"+sectionFromID+"-"+sectionToID);
+		}
+		
+		@Override
+		protected void onPreExecute(){
+			this.dialog.setTitle(logpreFix);
+			this.dialog.setMessage("正在查询："+tome+chapterID+":"+sectionFromID+"-"+sectionToID+" 节");
 			if(!this.dialog.isShowing()){
 				this.dialog.show();
 			}
@@ -359,7 +372,7 @@ public class Bible extends Activity {
 		
 		@Override
 		protected String doInBackground(Integer... params) {
-			Log.d(TAG,"经文doInBackground");
+			Log.d(TAG,logpreFix+"doInBackground");
 			publishProgress(params[0]);
 			
 			if(sectionFromID > sectionToID){
@@ -379,7 +392,7 @@ public class Bible extends Activity {
 		
 		@Override
 		protected void onPostExecute(String bible){
-			Log.d(TAG,"经文onPostExecute");
+			Log.d(TAG,logpreFix+"onPostExecute");
 			TextView bibleBox = (TextView) findViewById(R.id.bibleBox);
 			bibleBox.setText(bible);
 			this.dialog.dismiss();
