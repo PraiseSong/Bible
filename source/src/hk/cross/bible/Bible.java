@@ -9,12 +9,14 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.StrictMode;
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
@@ -42,20 +44,7 @@ public class Bible extends Activity {
 	
 	private boolean initQuery = false;//初始化查询是否完成 
 	
-	private Handler querySQLHandler = new Handler(){
-		public void handleMessage(Message msg){
-			super.handleMessage(msg);
-			switch(msg.what){
-			   default:
-				   Log.d(TAG,"finish");
-				   progressinitLoading.dismiss();
-			       setProgressBarIndeterminateVisibility(false);
-			   break;
-			}
-			
-		}
-	};
-	private Thread querySQLThread;
+	private QueryTask queryTask;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +52,8 @@ public class Bible extends Activity {
 		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.activity_bible);
 		
-		initLoading();
+		queryTask = new QueryTask(Bible.this);
+		queryTask.execute(0);
 		
 		/**
 		 * 解决android NetworkOnMainThreadException报错
@@ -78,14 +68,7 @@ public class Bible extends Activity {
 		.detectLeakedSqlLiteObjects() //探测SQLite数据库操作
 		.penaltyLog() 
 		.penaltyDeath()
-		.build());
-		
-		this.runOnUiThread(new Runnable(){
-			@Override
-			public void run() {
-				processBookTitle();
-			}
-		});
+		.build());	
 	}
 	
 	/**
@@ -165,8 +148,6 @@ public class Bible extends Activity {
 		String chapterQuery = "action=query_article_num&id="+tomeID;
 		
 		try{
-			loading();
-			
 			int chapterNum = Integer.parseInt(Json.getRequest(HOST+chapterQuery).trim());
 			Integer[] chapterNumList = new Integer[chapterNum];
 			for(int i=0; i<chapterNum; i++){
@@ -197,8 +178,6 @@ public class Bible extends Activity {
 		String sectionQuery = "action=query_verse_num&article="+chapterID+"&id="+tomeID+"";
 		
 		try{
-			loading();
-			
 			int sectionNum = Integer.parseInt(Json.getRequest(HOST+sectionQuery).trim());
 			Integer[] sectionList = new Integer[sectionNum];
 			for(int i=0; i<sectionNum; i++){
@@ -248,36 +227,113 @@ public class Bible extends Activity {
 		
 		String queryBible = "action=query_bible&article="+chapterID+"&id="+tomeID+"&verse_start="+sectionFromID+"&verse_stop="+sectionToID+"";
 		try{
-			loading();
-			
 			String bible = (Json.getRequest(HOST+queryBible)).trim();
 			bible = android.text.Html.fromHtml(bible).toString();
 			TextView bibleBox = (TextView) findViewById(R.id.bibleBox);
 			bibleBox.setText(bible);
 			
 			initQuery = true;
-			querySQLHandler.sendEmptyMessage(0);
+			queryTask.dialog.dismiss();
 		}catch(Exception e){
 			e.printStackTrace();
 		}
 	}
 	
-	private void initLoading(){
-		if(progressinitLoading != null && progressinitLoading.isShowing()){
-			return;
-		}
-		progressinitLoading = new ProgressDialog(Bible.this);
-		progressinitLoading.setProgressStyle(ProgressDialog.STYLE_SPINNER);
-		progressinitLoading.setTitle(TAG);
-		progressinitLoading.setMessage("查询中...");
-		progressinitLoading.show();
-	}
-	
 	private void loading(){
-		Message msg = new Message();
-		msg.what = 2;
-		querySQLHandler.sendMessage(msg);
-		Log.d(TAG,"loading");
 		setProgressBarIndeterminateVisibility(true);
+	}
+   
+	class QueryTask extends AsyncTask<Integer, Integer, SimpleAdapter>{
+		private Activity activity;
+		private ProgressDialog dialog;
+		private Context context;
+
+		public QueryTask(Activity activity){
+			Log.d(TAG,"开始一个新的查询任务");
+			this.activity = activity;
+			context = activity;
+			dialog = new ProgressDialog(context);
+		}
+		
+		protected void onPreExecute(){
+			Log.d(TAG,"onPreExecute");
+			this.dialog.setTitle(TAG);
+			this.dialog.setMessage("查询中...");
+			if(!this.dialog.isShowing()){
+				this.dialog.show();
+			}
+		}
+		
+		protected void onPostExecute(SimpleAdapter adapter){
+			super.onPostExecute(adapter);
+			Log.d(TAG,"onPostExecute");
+			
+			Spinner tomeList = (Spinner) findViewById(R.id.tome);
+			tomeList.setAdapter(adapter);
+			
+			OnItemSelectedListener listener = new OnItemSelectedListener(){
+				@Override
+				public void onItemSelected(AdapterView<?> parent, View view,
+						int position, long id) {
+					try {
+						JSONObject item = new JSONObject(parent.getItemAtPosition(position).toString());
+						int itemId = item.getInt("id");
+						String itemId2 = null;
+						if(itemId < 10){
+							itemId2 = "0"+String.valueOf(itemId);
+						}else{
+							itemId2 = ""+itemId;
+						}
+						
+						tomeID = Integer.parseInt(itemId2);
+						
+						processChapterNum();
+					} catch (JSONException e) {
+						e.printStackTrace();
+					}
+				}
+
+				@Override
+				public void onNothingSelected(AdapterView<?> arg0) {
+				}};
+			tomeList.setOnItemSelectedListener(listener);
+		}
+		
+		@Override
+		protected void onProgressUpdate(Integer... progress){
+			Log.d(TAG,"onProgressUpdate"+progress[0]);
+		}
+
+		@Override
+		protected SimpleAdapter doInBackground(Integer... params) {
+			Log.d(TAG,"doInBackground");
+			publishProgress(params);
+			
+			String bookTitleQuery = "action=query_bookTitle";
+			
+			try{
+				bookTitle = Json.getJSONArray(HOST+bookTitleQuery);
+				List<JSONObject> tome = jsonArray2ListJSONObject(bookTitle);
+				List<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
+				for(int i=0; i<tome.size(); i++){
+					HashMap<String, Object> map = new HashMap<String, Object>();
+					map.put("name", tome.get(i).getString("BookTitle"));
+					map.put("id", tome.get(i).getString("Book"));
+					data.add(map);
+				}
+				SimpleAdapter adapter = new SimpleAdapter(Bible.this, data, R.layout.list_item, new String[] {
+						"id", "name"
+				}, new int[] {
+						R.id.id,
+						R.id.name
+				});
+				return adapter;
+			}catch(JSONException e){
+				e.printStackTrace();
+			}catch(Exception e){
+				e.printStackTrace();
+			}
+			return null;
+		}
 	}
 }
