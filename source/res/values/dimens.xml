@@ -1,4 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <dimen name="container_padding">10dp</dimen>
+    <dimen name="spinner_height">41dp</dimen>
+    <dimen name="line_height">15dp</dimen>
+    <dimen name="bible_text_size">17sp</dimen>
+    <dimen name="droplist_text_size">16sp</dimen>
 </resources>

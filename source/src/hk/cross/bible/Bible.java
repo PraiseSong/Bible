@@ -3,7 +3,6 @@ package hk.cross.bible;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Timer;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -11,8 +10,6 @@ import org.json.JSONObject;
 
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
 import android.os.StrictMode;
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -32,8 +29,6 @@ public class Bible extends Activity {
 	private final String HOST = "http://cross.hk/wp-admin/admin-ajax.php?";
 	
 	private static final String TAG = "圣经";
-	
-	private ProgressDialog progressinitLoading;
 	
 	private JSONArray bookTitle;
 	
