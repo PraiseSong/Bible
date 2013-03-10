@@ -13,7 +13,9 @@ Change Logs
 =====
 * 2012-01-30第一版发布
 
-![cross.hk Android版圣经](http://labs.cross.hk/wp-content/uploads/2013/01/cross.hk-Bible-for-android-v-1.0.png)
+![cross.hk Android版圣经 2012-01-30](http://labs.cross.hk/wp-content/uploads/2013/01/cross.hk-Bible-for-android-v-1.0.png)
 
 * 2013-02-03在beta版做了大量的优化工作，包括代码的规范、progressdialog的优化(放在asynctast中处理
-)
+* 2013-03-10对ui做了简单的优化，并且更新了接口名称，还更新了logo
+  ![cross.hk Android版圣经 2013-03-10](http://labs.cross.hk/wp-content/uploads/2013/03/Screenshot_2013-03-10-21-07-09.png)
+
