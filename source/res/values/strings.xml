@@ -4,7 +4,7 @@
     <string name="app_name">圣经</string>
     <string name="menu_settings">设置</string>
     
-    <string name="tome">圣经书卷：</string>
+    <string name="volume">圣经书卷：</string>
     <string name="chapterNum">章数：</string>
     <string name="section">节数：</string>
     <string name="from">从</string>

@@ -17,6 +17,7 @@ import android.content.Context;
 import android.util.Log;
 import android.view.View;
 import android.view.Window;
+import android.webkit.WebView;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemSelectedListener;
 import android.widget.ArrayAdapter;
@@ -26,14 +27,14 @@ import android.widget.TextView;
 
 public class Bible extends Activity {
 	//接口地址
-	private final String HOST = "http://cross.hk/wp-admin/admin-ajax.php?";
+	private final String HOST = "http://bible.cross.hk/app/io.php5?";
 	
 	private static final String TAG = "圣经";
 	
 	private JSONArray bookTitle;
 	
-	private String tome = "";//当前书卷的名称
-	private int tomeID = 0;//当前圣经书卷的id
+	private String volume = "";//当前书卷的名称
+	private int volumeID = 0;//当前圣经书卷的id
 	private int chapterID = 0;//当前的章数
 	private int sectionFromID = 0;//当前开始节数
 	private int sectionToID = 0;//当前结束节数
@@ -98,6 +99,8 @@ public class Bible extends Activity {
 			this.activity = activity;
 			context = activity;
 			dialog = new ProgressDialog(context);
+			this.dialog.setCanceledOnTouchOutside(false);
+			this.dialog.setCancelable(true);
 		}
 		
 		protected void onPreExecute(){
@@ -110,10 +113,10 @@ public class Bible extends Activity {
 		
 		protected void onPostExecute(SimpleAdapter adapter){
 			super.onPostExecute(adapter);
-			Log.d(TAG,"onPostExecute");
+			Log.d(TAG,"onPostExecute"); 
 			
-			Spinner tomeList = (Spinner) findViewById(R.id.tome);
-			tomeList.setAdapter(adapter);
+			Spinner volumeList = (Spinner) findViewById(R.id.volume); 
+			volumeList.setAdapter(adapter);
 			
 			final ProgressDialog dialog = this.dialog;
 			
@@ -124,7 +127,7 @@ public class Bible extends Activity {
 					try {
 						JSONObject item = new JSONObject(parent.getItemAtPosition(position).toString());
 						int itemId = item.getInt("id");
-						tome = item.getString("name");
+						volume = item.getString("name");
 						String itemId2 = null;
 						if(itemId < 10){
 							itemId2 = "0"+String.valueOf(itemId);
@@ -132,7 +135,7 @@ public class Bible extends Activity {
 							itemId2 = ""+itemId;
 						}
 						
-						tomeID = Integer.parseInt(itemId2);
+						volumeID = Integer.parseInt(itemId2);
 						dialog.dismiss();
 						
 						queryChapterNum = (QueryChapterNum) new QueryChapterNum(Bible.this).execute(0);
@@ -144,7 +147,7 @@ public class Bible extends Activity {
 				@Override
 				public void onNothingSelected(AdapterView<?> arg0) {
 				}};
-			tomeList.setOnItemSelectedListener(listener);
+			volumeList.setOnItemSelectedListener(listener);
 		}
 		
 		@Override
@@ -157,16 +160,16 @@ public class Bible extends Activity {
 			Log.d(TAG,"doInBackground");
 			publishProgress(params);
 			
-			String bookTitleQuery = "action=query_bookTitle";
+			String bookTitleQuery = "action=query_volumes";
 			
 			try{
 				bookTitle = Json.getJSONArray(HOST+bookTitleQuery);
-				List<JSONObject> tome = jsonArray2ListJSONObject(bookTitle);
+				List<JSONObject> volume = jsonArray2ListJSONObject(bookTitle);
 				List<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
-				for(int i=0; i<tome.size(); i++){
+				for(int i=0; i<volume.size(); i++){
 					HashMap<String, Object> map = new HashMap<String, Object>();
-					map.put("name", tome.get(i).getString("BookTitle"));
-					map.put("id", tome.get(i).getString("Book"));
+					map.put("name", volume.get(i).getString("BookTitle"));
+					map.put("id", volume.get(i).getString("Book"));
 					data.add(map);
 				}
 				SimpleAdapter adapter = new SimpleAdapter(Bible.this, data, R.layout.list_item, new String[] {
@@ -199,7 +202,7 @@ public class Bible extends Activity {
 		protected ArrayAdapter doInBackground(Integer... params) {
 			Log.d(TAG,logpreFix+"doInBackground");
 			publishProgress(params[0]);
-			String chapterQuery = "action=query_article_num&id="+tomeID;
+			String chapterQuery = "action=query_chapters&volume="+volumeID;
 			
 			try{
 				int chapterNum = Integer.parseInt(Json.getRequest(HOST+chapterQuery).trim());
@@ -207,7 +210,7 @@ public class Bible extends Activity {
 				for(int i=0; i<chapterNum; i++){
 					chapterNumList[i] = i+1;
 				}
-				ArrayAdapter<Integer> adapter = new ArrayAdapter<Integer>(Bible.this, android.R.layout.simple_list_item_1, chapterNumList);
+				ArrayAdapter<Integer> adapter = new ArrayAdapter<Integer>(Bible.this, R.layout.list_item, R.id.name, chapterNumList);
 				return adapter;
 			}catch(Exception e){
 				e.printStackTrace();
@@ -216,7 +219,7 @@ public class Bible extends Activity {
 		}
 		
 		public QueryChapterNum(Activity activity){
-			Log.d(TAG,"开始查询 "+tome+" 章数");
+			Log.d(TAG,"开始查询 "+volume+" 章数");
 			this.activity = activity;
 			this.context = activity;
 			this.dialog = new ProgressDialog(activity);
@@ -225,7 +228,7 @@ public class Bible extends Activity {
 		@Override
 		protected void onPreExecute(){
 			Log.d(TAG,logpreFix+"onPreExecute");
-			this.dialog.setTitle("查询 "+tome+" 所有章数");
+			this.dialog.setTitle("查询 "+volume+" 所有章数");
 			if(!this.dialog.isShowing()){
 				this.dialog.show();
 			}
@@ -270,11 +273,13 @@ public class Bible extends Activity {
 			this.activity = activity;
 			this.context = activity;
 			this.dialog = new ProgressDialog(activity);
+			this.dialog.setCanceledOnTouchOutside(false);
+			this.dialog.setCancelable(true);
 		}
 		
 		@Override
 		protected void onPreExecute(){
-			this.dialog.setTitle("查询 "+tome+" 第 "+chapterID+" 章的节数");
+			this.dialog.setTitle("查询 "+volume+" 第 "+chapterID+" 章的节数");
 			if(!this.dialog.isShowing()){
 				this.dialog.show();
 			}
@@ -285,7 +290,7 @@ public class Bible extends Activity {
 			Log.d(TAG,logpreFix+"doInBackground");
 			
 			publishProgress(params[0]);
-			String sectionQuery = "action=query_verse_num&article="+chapterID+"&id="+tomeID+"";
+			String sectionQuery = "action=query_sections&chapter="+chapterID+"&volume="+volumeID+"";
 			try{
 				int sectionNum = Integer.parseInt(Json.getRequest(HOST+sectionQuery).trim());
 				Integer[] sectionList = new Integer[sectionNum];
@@ -293,7 +298,7 @@ public class Bible extends Activity {
 					sectionList[i] = i+1;
 				}
 				
-				ArrayAdapter<Integer> adapter = new ArrayAdapter<Integer>(Bible.this, android.R.layout.simple_list_item_1, sectionList);
+				ArrayAdapter<Integer> adapter = new ArrayAdapter<Integer>(Bible.this, R.layout.list_item, R.id.name, sectionList);
 			    return adapter;
 			}catch(Exception e){
 				e.printStackTrace();
@@ -354,12 +359,14 @@ public class Bible extends Activity {
 			this.activity = activity;
 			this.context = activity;
 			this.dialog = new ProgressDialog(activity);
+			this.dialog.setCanceledOnTouchOutside(false);
+			this.dialog.setCancelable(true);
 		}
 		
 		@Override
 		protected void onPreExecute(){
 			this.dialog.setTitle(logpreFix);
-			this.dialog.setMessage("正在查询："+tome+chapterID+":"+sectionFromID+"-"+sectionToID+" 节");
+			this.dialog.setMessage("正在查询："+volume+chapterID+":"+sectionFromID+"-"+sectionToID+" 节");
 			if(!this.dialog.isShowing()){
 				this.dialog.show();
 			}
@@ -374,11 +381,12 @@ public class Bible extends Activity {
 				return "";
 			}
 			
-			String queryBible = "action=query_bible&article="+chapterID+"&id="+tomeID+"&verse_start="+sectionFromID+"&verse_stop="+sectionToID+"";
+			String queryBible = "action=query_content&chapter="+chapterID+"&volume="+volumeID+"&section_start="+sectionFromID+"&section_end="+sectionToID+"";
 			try{
-				String bible = (Json.getRequest(HOST+queryBible)).trim();
-				bible = android.text.Html.fromHtml(bible).toString();
-				return bible;
+				JSONObject bible = new JSONObject(Json.getRequest(HOST+queryBible));
+				String textData = bible.getString("TextData");
+				textData = android.text.Html.fromHtml(textData).toString();
+				return textData;
 			}catch(Exception e){
 				e.printStackTrace();
 			}
@@ -388,7 +396,7 @@ public class Bible extends Activity {
 		@Override
 		protected void onPostExecute(String bible){
 			Log.d(TAG,logpreFix+"onPostExecute");
-			TextView bibleBox = (TextView) findViewById(R.id.bibleBox);
+			TextView bibleBox = (TextView) findViewById(R.id.bibleBox); 
 			bibleBox.setText(bible);
 			this.dialog.dismiss();
 		}
