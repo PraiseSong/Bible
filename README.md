@@ -7,7 +7,7 @@ Bible
 
 圣经的数据很大的哦！还好，哥一年前就把这些数据搞好了，mysql的。
 
-web版圣经查询：[cross.hk/圣经查询](http://cross.hk/%E5%9C%A8%E7%BA%BF%E5%9C%A3%E7%BB%8F)
+web版圣经查询：[cross.hk/圣经查询](http://bible.cross.hk)
 
 Change Logs
 =====
